@@ -173,7 +173,7 @@ def uniformCostSearch(problem: SearchProblem):
 	Solução adaptada de https://edisciplinas.usp.br/pluginfile.php/9483368/mod_resource/content/2/Aula4-busca-cega-2026.pdf slide 56
 	Acessado em 31/03/2026
 	"""
-	#nó ← um nó com custoCaminho=0 e estado igual a problema.ESTADO-INICIAL
+	#nó ← cria um nó com custoCaminho=0 e ESTADO= problema.ESTADO-INICIAL
 	no = problem.getStartState()
 	custo = 0
 	estado = problem.getStartState()
@@ -203,7 +203,7 @@ def uniformCostSearch(problem: SearchProblem):
 			#	borda ← INSIRA (filho, borda)
 			#senão se (filho.ESTADO) está na borda com CUSTO-DE-CAMINHO maior
 			#	então substituir aquele nó borda por filho
-			#O comportamento desse trecho de lógica está todo no pré-pronto no método update da PriorityQueue
+			#O comportamento de atualização de custo está todo pré-pronto no método update da PriorityQueue
 			if filho_no not in explorado:
 				borda.update((filho_no, solucao + [filho_acao]), filho_custo+1)
 
