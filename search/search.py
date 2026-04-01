@@ -168,9 +168,44 @@ def breadthFirstSearch(problem: SearchProblem):
 				borda.push((filho_no, solucao + [filho_acao]))
 
 def uniformCostSearch(problem: SearchProblem):
-	"""Search the node of least total cost first."""
-	"*** YOUR CODE HERE ***"
-	util.raiseNotDefined()
+	"""Search the node of least total cost first.
+
+	Solução adaptada de https://edisciplinas.usp.br/pluginfile.php/9483368/mod_resource/content/2/Aula4-busca-cega-2026.pdf slide 56
+	Acessado em 31/03/2026
+	"""
+	#nó ← um nó com custoCaminho=0 e estado igual a problema.ESTADO-INICIAL
+	no = problem.getStartState()
+	custo = 0
+	estado = problem.getStartState()
+	#borda ← fila de prioridade ordenada pelo CUSTO-DE-CAMINHO, contendo nó
+	borda = util.PriorityQueue()
+	borda.push((no, []), custo)
+	#explorado ← conjunto vazio
+	explorado = set()
+	#repita
+	while True:
+		#se VAZIO?(borda) então devolve falha
+		if borda.isEmpty():
+			raise ValueError("Nenhuma solução encontrada!")
+		#nó ← REMOVE(borda)
+		no, solucao = borda.pop()
+		#se problema.TESTE-META(nó.ESTADO) então devolve SOLUÇÃO(nó)
+		if problem.isGoalState(no):
+			return solucao
+		#adicionar (nó.ESTADO) para explorado
+		explorado.add(no)
+		#para cada ação em problema.AÇÕES(nó.ESTADO) faça
+		#filho ← GERA-NÓ-FILHO(problema, nó, ação)
+		filhos = problem.getSuccessors(no)
+		for filho in filhos:
+			filho_no, filho_acao, filho_custo = filho
+			#se (filho.ESTADO) não está na borda ou explorado então
+			#	borda ← INSIRA (filho, borda)
+			#senão se (filho.ESTADO) está na borda com CUSTO-DE-CAMINHO maior
+			#	então substituir aquele nó borda por filho
+			#O comportamento desse trecho de lógica está todo no pré-pronto no método update da PriorityQueue
+			if filho_no not in explorado:
+				borda.update((filho_no, solucao + [filho_acao]), filho_custo+1)
 
 def nullHeuristic(state, problem=None):
 	"""
