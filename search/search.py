@@ -72,6 +72,13 @@ def tinyMazeSearch(problem):
 	w = Directions.WEST
 	return  [s, s, w, s, w, w, s, w]
 
+def verifica_se_esta_na_borda(no_teste, borda):
+	for nos in borda.list:
+		no, solucao = nos
+		if no == no_teste:
+			return True
+	return False
+
 def depthFirstSearch(problem: SearchProblem):
 	"""
 	Search the deepest nodes in the search tree first.
@@ -117,7 +124,7 @@ def depthFirstSearch(problem: SearchProblem):
 		for filho in filhos:
 			filho_no, filho_acao, filho_custo = filho
 			#se (filho.ESTADO) não está em explorado ou borda então
-			if filho[0] not in explorado:
+			if filho_no not in explorado and not verifica_se_esta_na_borda(filho_no, borda):
 				#borda ← INSIRA (filho, borda)
 				borda.push((filho_no, solucao + [filho_acao]))
 
@@ -153,7 +160,7 @@ def breadthFirstSearch(problem: SearchProblem):
 		for filho in filhos:
 			filho_no, filho_acao, filho_custo = filho
 			#se (filho.ESTADO) não está em explorado ou borda então
-			if filho_no not in explorado:
+			if filho_no not in explorado and not verifica_se_esta_na_borda(filho_no, borda):
 				#se problema.TESTE-META(filho.ESTADO) então devolve solução (nó-filho)
 				if problem.isGoalState(filho_no):
 					return solucao + [filho_acao]
