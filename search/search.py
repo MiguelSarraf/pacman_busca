@@ -122,9 +122,43 @@ def depthFirstSearch(problem: SearchProblem):
 				borda.push((filho_no, solucao + [filho_acao]))
 
 def breadthFirstSearch(problem: SearchProblem):
-	"""Search the shallowest nodes in the search tree first."""
-	"*** YOUR CODE HERE ***"
-	util.raiseNotDefined()
+	"""Search the shallowest nodes in the search tree first.
+
+	Solução adaptada de https://edisciplinas.usp.br/pluginfile.php/9483368/mod_resource/content/2/Aula4-busca-cega-2026.pdf slide 36
+	Acessado em 31/03/2026
+	"""
+	#nó ← um nó com custoCaminho=0 e estado igual a problema.ESTADO-INICIAL
+	no = problem.getStartState()
+	estado = problem.getStartState()
+	#Se problema.TESTE-META(nó.ESTADO) devolve SOLUÇÃO(nó)
+	if problem.isGoalState(no):
+		return []
+	#borda ← INSIRA(nó,borda)
+	borda = util.Queue()
+	borda.push((no, []))
+	#explorado ← conjunto vazio
+	explorado = set()
+	#repita
+	while True:
+		#se VAZIA(borda) então devolve falha
+		if borda.isEmpty():
+			raise ValueError("Nenhuma solução encontrada!")
+		#nó ← REMOVE(borda)
+		no, solucao = borda.pop()
+		#explorado ← INSIRA(nó.ESTADO, explorado)
+		explorado.add(no)
+		#para cada ação em problema.AÇÕES(nó.ESTADO) faça
+		#filho ← NO-FILHO(problema, nó, ação)
+		filhos = problem.getSuccessors(no)
+		for filho in filhos:
+			filho_no, filho_acao, filho_custo = filho
+			#se (filho.ESTADO) não está em explorado ou borda então
+			if filho_no not in explorado:
+				#se problema.TESTE-META(filho.ESTADO) então devolve solução (nó-filho)
+				if problem.isGoalState(filho_no):
+					return solucao + [filho_acao]
+				#borda ← INSIRA (filho, borda)
+				borda.push((filho_no, solucao + [filho_acao]))
 
 def uniformCostSearch(problem: SearchProblem):
 	"""Search the node of least total cost first."""
