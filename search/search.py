@@ -215,9 +215,41 @@ def nullHeuristic(state, problem=None):
 	return 0
 
 def aStarSearch(problem: SearchProblem, heuristic=nullHeuristic):
-	"""Search the node that has the lowest combined cost and heuristic first."""
-	"*** YOUR CODE HERE ***"
-	util.raiseNotDefined()
+	"""Search the node that has the lowest combined cost and heuristic first.
+
+	Solução adaptada de https://edisciplinas.usp.br/pluginfile.php/9492271/mod_resource/content/4/Aula5-Astar-2026.pdf
+	Acessado em 01/04/2026"""
+	#nó ← cria um nó com custoCaminho=0 e ESTADO= problema.ESTADO-INICIAL
+	no = problem.getStartState()
+	custo = 0
+	estado = problem.getStartState()
+	#borda ← fila de prioridade ordenada pelo CUSTO-DE-CAMINHO, contendo nó
+	borda = util.PriorityQueue()
+	borda.push((no, []), custo)
+	#explorado ← conjunto vazio
+	explorado = set()
+	#repita
+	while True:
+		#se VAZIO?(borda) então devolve falha
+		if borda.isEmpty():
+			raise ValueError("Nenhuma solução encontrada!")
+		#nó ← REMOVE(borda)
+		no, solucao = borda.pop()
+		#se problema.TESTE-META(nó.ESTADO) então devolve SOLUÇÃO(nó)
+		if problem.isGoalState(no):
+			return solucao
+		#adicionar (nó.ESTADO) para explorado
+		explorado.add(no)
+		#para cada ação em problema.AÇÕES(nó.ESTADO) faça
+		#filho ← GERA-NÓ-FILHO(problema, nó, ação)
+		filhos = problem.getSuccessors(no)
+		for filho in filhos:
+			filho_no, filho_acao, filho_custo = filho
+			#Adiciona filhos na fila de acordo com heurística calculada
+			if filho_no not in explorado:
+				heuristica = heuristic(filho_no, problem)
+				ordem = filho_custo + heuristica
+				borda.update((filho_no, solucao + [filho_acao]), ordem)
 
 # Códigos obrigatórios para a pós-graduação:
 
