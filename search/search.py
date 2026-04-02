@@ -74,7 +74,7 @@ def tinyMazeSearch(problem):
 
 def verifica_se_esta_na_borda(no_teste, borda):
 	for nos in borda.list:
-		no, solucao = nos
+		no = nos[0]
 		if no == no_teste:
 			return True
 	return False
@@ -253,12 +253,59 @@ def aStarSearch(problem: SearchProblem, heuristic=nullHeuristic):
 
 # Códigos obrigatórios para a pós-graduação:
 
+def dlsSearch(problem: SearchProblem, limite: int):
+	"""Search the deepest nodes in the search tree first limited to limite length.
+
+	Solução adaptada de https://edisciplinas.usp.br/pluginfile.php/9483368/mod_resource/content/2/Aula4-busca-cega-2026.pdf slide 95 e solução para busca em profundidade.
+	Acessado em 01/04/2026"""
+	#nó ← um nó com custoCaminho=0 e estado igual a problema.ESTADO-INICIAL
+	no = problem.getStartState()
+	estado = problem.getStartState()
+	#borda ← INSIRA(nó,borda)
+	borda = util.Stack()
+	borda.push((no, [], 0))
+	#explorado ← conjunto vazio
+	explorado = set()
+	#repita
+	while True:
+		#se VAZIA(borda) então devolve falha
+		if borda.isEmpty():
+			raise ValueError("Nenhuma solução encontrada!")
+		#nó ← REMOVE(borda)
+		no, solucao, profundidade = borda.pop()
+		#se profundidade > limite então devolve falha
+		if profundidade > limite:
+			raise ValueError(f"Limite de profundidade atingido: {limite}")
+		#se problema.TESTE-META(filho.ESTADO) então devolve solução(filho)
+		filhos = problem.getSuccessors(no)
+		for filho in filhos:
+			filho_no, filho_acao, filho_custo = filho
+			if problem.isGoalState(filho_no):
+				return solucao + [filho_acao]
+		#explorado ← INSIRA(nó.ESTADO, explorado)
+		explorado.add(no)
+		#para cada ação em problema.AÇÕES(nó.ESTADO) faça
+		#filho ← NO-FILHO(problema, nó, ação)
+		for filho in filhos:
+			filho_no, filho_acao, filho_custo = filho
+			#se (filho.ESTADO) não está em explorado ou borda então
+			if filho_no not in explorado and not verifica_se_esta_na_borda(filho_no, borda):
+				#borda ← INSIRA (filho, borda)
+				borda.push((filho_no, solucao + [filho_acao], profundidade + 1))
+
 def iddfsSearch(problem: SearchProblem):
 	"""Search the deepest nodes in the search tree first, limited by an iteratively increasing depth.
-	Create an additional function if needed.
+
+	Solução adaptada de https://edisciplinas.usp.br/pluginfile.php/9483368/mod_resource/content/2/Aula4-busca-cega-2026.pdf slide 105 e solução para busca em profundidade.
+	Acessado em 01/04/2026
 	"""
-	"*** YOUR CODE HERE ***"
-	util.raiseNotDefined()
+	limite = 1
+	while True:
+		try:
+			resultado = dlsSearch(problem, limite)
+			return resultado
+		except:
+			limite += 1
 
 def lrtaStarSearch(problem, heuristic=nullHeuristic):
 	"""Execute a number of trials of LRTA* and return the best plan found."""
