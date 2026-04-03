@@ -166,6 +166,13 @@ def breadthFirstSearch(problem: SearchProblem):
 				#borda ← INSIRA (filho, borda)
 				borda.push((filho_no, solucao + [filho_acao]))
 
+def verifica_se_esta_no_monte(no_teste, borda):
+	for nos in borda.heap:
+		no = nos[2]
+		if no == no_teste:
+			return nos[0]
+	return False
+
 def uniformCostSearch(problem: SearchProblem):
 	"""Search the node of least total cost first.
 
@@ -178,7 +185,9 @@ def uniformCostSearch(problem: SearchProblem):
 	estado = problem.getStartState()
 	#borda ← fila de prioridade ordenada pelo CUSTO-DE-CAMINHO, contendo nó
 	borda = util.PriorityQueue()
-	borda.push((no, []), custo)
+	solucoes = {no: []}
+	custos = {no: custo}
+	borda.push(no, custo)
 	#explorado ← conjunto vazio
 	explorado = set()
 	#repita
@@ -187,10 +196,10 @@ def uniformCostSearch(problem: SearchProblem):
 		if borda.isEmpty():
 			raise ValueError("Nenhuma solução encontrada!")
 		#nó ← REMOVE(borda)
-		no, solucao = borda.pop()
+		no = borda.pop()
 		#se problema.TESTE-META(nó.ESTADO) então devolve SOLUÇÃO(nó)
 		if problem.isGoalState(no):
-			return solucao
+			return solucoes[no]
 		#adicionar (nó.ESTADO) para explorado
 		explorado.add(no)
 		#para cada ação em problema.AÇÕES(nó.ESTADO) faça
@@ -199,13 +208,18 @@ def uniformCostSearch(problem: SearchProblem):
 		for filho in filhos:
 			filho_no, filho_acao, filho_custo = filho
 			#se (filho.ESTADO) não está na borda ou explorado então
-			#	borda ← INSIRA (filho, borda)
+			custo_atual = verifica_se_esta_no_monte(filho_no, borda)
+			if filho_no not in explorado and not custo_atual:
+				#borda ← INSIRA (filho, borda)
+				solucoes[filho_no] = solucoes[no] + [filho_acao]
+				custos[filho_no] = custos[no] + filho_custo
+				borda.push(filho_no, custos[filho_no])
 			#senão se (filho.ESTADO) está na borda com CUSTO-DE-CAMINHO maior
-			#	então substituir aquele nó borda por filho
-			#O comportamento de atualização de custo está todo pré-pronto no método update da PriorityQueue
-			if filho_no not in explorado:
-				borda.update((filho_no, solucao + [filho_acao]), filho_custo+1)
-
+			if custo_atual and custo_atual > custo + filho_custo:
+				#então substituir aquele nó borda por filho
+				solucoes[filho_no] = solucoes[no] + [filho_acao]
+				custos[filho_no] = custos[no] + filho_custo
+				borda.update(filho_no, custos[filho_no])
 def nullHeuristic(state, problem=None):
 	"""
 	A heuristic function estimates the cost from the current state to the nearest
