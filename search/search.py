@@ -306,17 +306,6 @@ def iddfsSearch(problem: SearchProblem):
 		except:
 			limite += 1
 
-def busca_espaco_de_heuristicas(heuristica, estado, paredes, problema):
-	altura = paredes.height
-	largura = paredes.width
-	heuristica_inicial = {}
-	for i in range(largura):
-		for j in range(altura):
-			if paredes[i][j]:
-				continue
-			heuristica_inicial[(i, j)] = heuristica((i,j), problema)
-	return heuristica_inicial
-
 def salvar_matriz_txt(dados, paredes, caminho_arquivo):
 	"""
 	dados: dict com chaves (x, y) e valores numéricos
@@ -341,7 +330,7 @@ def lrtaStarSearch(problem, heuristic=nullHeuristic):
 	Solução adaptada de https://arxiv.org/pdf/1110.4076 figura 2.
 	Acessado em 02/04/2026"""
 	#initialize the heuristic: h ← h0
-	heuristica = busca_espaco_de_heuristicas(heuristic, problem.getStartState(), problem.walls, problem)
+	heuristica = problem.busca_espaco_de_heuristicas(heuristic)
 	trials = int(os.environ.get("NUM_TRIALS", 10))
 	trial = 0
 	while trial < trials:

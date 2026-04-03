@@ -230,6 +230,18 @@ class PositionSearchProblem(search.SearchProblem):
             cost += self.costFn((x,y))
         return cost
 
+    def busca_espaco_de_heuristicas(self, heuristica):
+        paredes = self.walls
+        altura = paredes.height
+        largura = paredes.width
+        heuristica_inicial = {}
+        for i in range(largura):
+            for j in range(altura):
+                if paredes[i][j]:
+                    continue
+                heuristica_inicial[(i, j)] = heuristica((i,j), self)
+        return heuristica_inicial
+
 class StayEastSearchAgent(SearchAgent):
     """
     An agent for position search with a cost function that penalizes being in
@@ -269,6 +281,23 @@ def euclideanHeuristic(position, problem, info={}):
 #####################################################
 # This portion is incomplete.  Time to write code!  #
 #####################################################
+
+from itertools import chain, combinations
+
+def ordena_conjunto(conjunto, ordem):
+    saida = []
+    for posicao in ordem:
+        if posicao in conjunto:
+            saida.append(posicao)
+    return tuple(saida)
+
+def conjunto_potencia(cantos):
+    s = list(cantos)
+    combinacoes = chain.from_iterable(combinations(s, r) for r in range(len(s) + 1))
+    saida = []
+    for combinacao in combinacoes:
+        saida.append(ordena_conjunto(list(combinacao), s))
+    return tuple(saida)
 
 class CornersProblem(search.SearchProblem):
     """
@@ -332,6 +361,7 @@ class CornersProblem(search.SearchProblem):
                 next_visited_corners = visited_corners
                 if (nextx, nexty) in self.corners and (nextx, nexty) not in next_visited_corners:
                     next_visited_corners = tuple(list(next_visited_corners) + [(nextx, nexty)])
+                next_visited_corners = ordena_conjunto(next_visited_corners, self.corners)
                 nextState = ((nextx, nexty), next_visited_corners)
                 cost = 1
                 successors.append( ( nextState, action, cost) )
@@ -352,6 +382,22 @@ class CornersProblem(search.SearchProblem):
             if self.walls[x][y]: return 999999
         return len(actions)
 
+    def busca_espaco_de_heuristicas(self, heuristica):
+        paredes = self.walls
+        altura = paredes.height
+        largura = paredes.width
+        cantos = self.corners
+        potencia_de_cantos = conjunto_potencia(cantos)
+
+        heuristica_inicial = {}
+        for i in range(largura):
+            for j in range(altura):
+                if paredes[i][j]:
+                    continue
+                for combinacao in potencia_de_cantos:
+                    heuristica_inicial[((i, j), combinacao)] = heuristica(((i,j), combinacao), self)
+        return heuristica_inicial
+
 
 def cornersHeuristic(state: Any, problem: CornersProblem):
     """
@@ -369,8 +415,14 @@ def cornersHeuristic(state: Any, problem: CornersProblem):
     corners = problem.corners # These are the corner coordinates
     walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
 
-    "*** YOUR CODE HERE ***"
-    return 0 # Default to trivial solution
+    position, visited_corners = state
+
+    #h=min(manhattan(state, corner)) para todo estado nao visitado
+    manhattans = []
+    for corner in corners:
+        if corner not in visited_corners:
+            manhattans.append(util.manhattanDistance(position, corner))
+    return min(manhattans) if len(manhattans) > 0 else 0
 
 class AStarCornersAgent(SearchAgent):
     "A SearchAgent for CornersProblem using A* and your cornersHeuristic"
