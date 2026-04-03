@@ -333,6 +333,7 @@ def lrtaStarSearch(problem, heuristic=nullHeuristic):
 	heuristica = problem.busca_espaco_de_heuristicas(heuristic)
 	trials = int(os.environ.get("NUM_TRIALS", 10))
 	trial = 0
+	trials_passos = open("trials_passos.csv", "w")
 	while trial < trials:
 		#reset the current state: s ← sstart
 		no = problem.getStartState()
@@ -363,6 +364,7 @@ def lrtaStarSearch(problem, heuristic=nullHeuristic):
 			no = filho_prodigo
 			solucao.append(proxima_acao)
 			passo+=1
+		trials_passos.write(f"{trial},{passo}\n")
 		trial+=1
 	salvar_matriz_txt(heuristica, problem.walls, "heuristicas.csv")
 	print(f"Custo estimado do estado inicial: {heuristica[problem.getStartState()]}")
