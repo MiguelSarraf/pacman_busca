@@ -18,6 +18,7 @@ Pacman agents (in searchAgents.py).
 """
 
 import util
+import os
 
 class SearchProblem:
 	"""
@@ -307,11 +308,78 @@ def iddfsSearch(problem: SearchProblem):
 		except:
 			limite += 1
 
+def busca_espaco_de_heuristicas(heuristica, estado, paredes, problema):
+	altura = paredes.height
+	largura = paredes.width
+	heuristica_inicial = {}
+	for i in range(largura):
+		for j in range(altura):
+			if paredes[i][j]:
+				continue
+			heuristica_inicial[(i, j)] = heuristica((i,j), problema)
+	return heuristica_inicial
+
+def salvar_matriz_txt(dados, paredes, caminho_arquivo):
+	"""
+	dados: dict com chaves (x, y) e valores numéricos
+	max_x: maior valor de x (inclusive)
+	max_y: maior valor de y (inclusive)
+	caminho_arquivo: caminho do arquivo de saída
+	"""
+	max_y = paredes.height
+	max_x = paredes.width
+
+	with open(caminho_arquivo, "w") as f:
+		for y in range(max_y):
+			linha = []
+			for x in range(max_x):
+				valor = dados.get((x, max_y - y - 1), "X")
+				linha.append(str(valor))
+			f.write(",".join(linha) + "\n")
+
 def lrtaStarSearch(problem, heuristic=nullHeuristic):
-	"""Execute a number of trials of LRTA* and return the best plan found."""
-	"*** ADD YOUR CODE HERE ***"
-	util.raiseNotDefined()
-	# MAXTRIALS = ...
+	"""Execute a number of trials of LRTA* and return the best plan found.
+
+	Solução adaptada de https://arxiv.org/pdf/1110.4076 figura 2.
+	Acessado em 02/04/2026"""
+	#initialize the heuristic: h ← h0
+	heuristica = busca_espaco_de_heuristicas(heuristic, problem.getStartState(), problem.walls, problem)
+	trials = int(os.environ.get("NUM_TRIALS", 10))
+	trial = 0
+	while trial < trials:
+		#reset the current state: s ← sstart
+		no = problem.getStartState()
+		#while s not∈ Sg do
+		solucao = []
+		passo=1
+		while True:
+			if problem.isGoalState(no):
+				break
+			#generate children one move away from state s
+			filhos = problem.getSuccessors(no)
+			#find the state s with the lowest f = g + h
+			custo_meta = 100000000000
+			filho_prodigo = None
+			proxima_acao = None
+			for filho in filhos:
+				filho_no, filho_acao, filho_custo = filho
+				if heuristica[filho_no] < custo_meta:
+					custo_meta = heuristica[filho_no]
+					custo_proximo = filho_custo
+					filho_prodigo = filho_no
+					proxima_acao = filho_acao
+			#update h(s) to f(s') if f(s') is greater
+			if heuristica[filho_prodigo] + custo_proximo > heuristica[no]:
+				heuristica[no] = heuristica[filho_prodigo] + custo_proximo
+			#execute the action to get to s
+			#input(proxima_acao+"\n")
+			no = filho_prodigo
+			solucao.append(proxima_acao)
+			passo+=1
+		trial+=1
+	salvar_matriz_txt(heuristica, problem.walls, "heuristicas.csv")
+	print(f"Custo estimado do estado inicial: {heuristica[problem.getStartState()]}")
+	return solucao
 
 
 # Abbreviations
