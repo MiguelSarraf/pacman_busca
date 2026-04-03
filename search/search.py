@@ -215,7 +215,7 @@ def uniformCostSearch(problem: SearchProblem):
 				custos[filho_no] = custos[no] + filho_custo
 				borda.push(filho_no, custos[filho_no])
 			#senão se (filho.ESTADO) está na borda com CUSTO-DE-CAMINHO maior
-			if custo_atual and custo_atual > custo + filho_custo:
+			if custo_atual and custo_atual > custos[no] + filho_custo:
 				#então substituir aquele nó borda por filho
 				solucoes[filho_no] = solucoes[no] + [filho_acao]
 				custos[filho_no] = custos[no] + filho_custo
@@ -238,7 +238,9 @@ def aStarSearch(problem: SearchProblem, heuristic=nullHeuristic):
 	estado = problem.getStartState()
 	#borda ← fila de prioridade ordenada pelo CUSTO-DE-CAMINHO, contendo nó
 	borda = util.PriorityQueue()
-	borda.push((no, []), custo)
+	solucoes = {no: []}
+	custos = {no: custo}
+	borda.push(no, custo)
 	#explorado ← conjunto vazio
 	explorado = set()
 	#repita
@@ -247,10 +249,10 @@ def aStarSearch(problem: SearchProblem, heuristic=nullHeuristic):
 		if borda.isEmpty():
 			raise ValueError("Nenhuma solução encontrada!")
 		#nó ← REMOVE(borda)
-		no, solucao = borda.pop()
+		no = borda.pop()
 		#se problema.TESTE-META(nó.ESTADO) então devolve SOLUÇÃO(nó)
 		if problem.isGoalState(no):
-			return solucao
+			return solucoes[no]
 		#adicionar (nó.ESTADO) para explorado
 		explorado.add(no)
 		#para cada ação em problema.AÇÕES(nó.ESTADO) faça
@@ -259,10 +261,19 @@ def aStarSearch(problem: SearchProblem, heuristic=nullHeuristic):
 		for filho in filhos:
 			filho_no, filho_acao, filho_custo = filho
 			#Adiciona filhos na fila de acordo com heurística calculada
-			if filho_no not in explorado:
-				heuristica = heuristic(filho_no, problem)
-				ordem = filho_custo + heuristica
-				borda.update((filho_no, solucao + [filho_acao]), ordem)
+			custo_atual = verifica_se_esta_no_monte(filho_no, borda)
+			heuristica = heuristic(filho_no, problem)
+			if filho_no not in explorado and not custo_atual:
+				#borda ← INSIRA (filho, borda)
+				solucoes[filho_no] = solucoes[no] + [filho_acao]
+				custos[filho_no] = custos[no] + filho_custo
+				borda.push(filho_no, custos[filho_no]+heuristica)
+			#senão se (filho.ESTADO) está na borda com CUSTO-DE-CAMINHO maior
+			if custo_atual and custo_atual > custos[no] + filho_custo + heuristica:
+				#então substituir aquele nó borda por filho
+				solucoes[filho_no] = solucoes[no] + [filho_acao]
+				custos[filho_no] = custos[no] + filho_custo
+				borda.update(filho_no, custos[filho_no] + heuristica)
 
 # Códigos obrigatórios para a pós-graduação:
 
