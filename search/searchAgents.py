@@ -398,7 +398,6 @@ class CornersProblem(search.SearchProblem):
                     heuristica_inicial[((i, j), combinacao)] = heuristica(((i,j), combinacao), self)
         return heuristica_inicial
 
-
 def cornersHeuristic(state: Any, problem: CornersProblem):
     """
     A heuristic for the CornersProblem that you defined.
@@ -417,12 +416,13 @@ def cornersHeuristic(state: Any, problem: CornersProblem):
 
     position, visited_corners = state
 
-    #h=min(manhattan(state, corner)) para todo estado nao visitado
-    manhattans = []
+    #Maior distancia de Manhattan entre estado e os cantos não visitados
+    #Se todos os cantos já foram visitados, h=0, pois é solução
+    heuristicas = []
     for corner in corners:
         if corner not in visited_corners:
-            manhattans.append(util.manhattanDistance(position, corner))
-    return min(manhattans) if len(manhattans) > 0 else 0
+            heuristicas.append(int(util.manhattanDistance(position, corner)))
+    return max(heuristicas) if len(heuristicas) > 0 else 0
 
 class AStarCornersAgent(SearchAgent):
     "A SearchAgent for CornersProblem using A* and your cornersHeuristic"
