@@ -112,12 +112,10 @@ def depthFirstSearch(problem: SearchProblem):
 			raise ValueError("Nenhuma solução encontrada!")
 		#nó ← REMOVE(borda)
 		no, solucao = borda.pop()
-		#se problema.TESTE-META(filho.ESTADO) então devolve solução(filho)
+		#se problema.TESTE-META(nó) então devolve solução (nó)
+		if problem.isGoalState(no):
+			return solucao
 		filhos = problem.getSuccessors(no)
-		for filho in filhos:
-			filho_no, filho_acao, filho_custo = filho
-			if problem.isGoalState(filho_no):
-				return solucao + [filho_acao]
 		#explorado ← INSIRA(nó.ESTADO, explorado)
 		explorado.add(no)
 		#para cada ação em problema.AÇÕES(nó.ESTADO) faça
@@ -153,6 +151,9 @@ def breadthFirstSearch(problem: SearchProblem):
 			raise ValueError("Nenhuma solução encontrada!")
 		#nó ← REMOVE(borda)
 		no, solucao = borda.pop()
+		#se problema.TESTE-META(nó) então devolve solução (nó)
+		if problem.isGoalState(no):
+			return solucao
 		#explorado ← INSIRA(nó.ESTADO, explorado)
 		explorado.add(no)
 		#para cada ação em problema.AÇÕES(nó.ESTADO) faça
@@ -162,9 +163,6 @@ def breadthFirstSearch(problem: SearchProblem):
 			filho_no, filho_acao, filho_custo = filho
 			#se (filho.ESTADO) não está em explorado ou borda então
 			if filho_no not in explorado and not verifica_se_esta_na_borda(filho_no, borda):
-				#se problema.TESTE-META(filho.ESTADO) então devolve solução (nó-filho)
-				if problem.isGoalState(filho_no):
-					return solucao + [filho_acao]
 				#borda ← INSIRA (filho, borda)
 				borda.push((filho_no, solucao + [filho_acao]))
 
