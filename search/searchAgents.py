@@ -75,7 +75,8 @@ class SearchAgent(Agent):
     Note: You should NOT change any code in SearchAgent
     """
 
-    def __init__(self, fn='depthFirstSearch', prob='PositionSearchProblem', heuristic='nullHeuristic'):
+    def __init__(self, fn='depthFirstSearch', prob='PositionSearchProblem', 
+            heuristic='nullHeuristic', trials=None):
         # Warning: some advanced Python magic is employed below to find the right functions and problems
 
         # Get the search function from the name and heuristic
@@ -92,9 +93,16 @@ class SearchAgent(Agent):
                 heur = getattr(search, heuristic)
             else:
                 raise AttributeError(heuristic + ' is not a function in searchAgents.py or search.py.')
-            print('[SearchAgent] using function %s and heuristic %s' % (fn, heuristic))
-            # Note: this bit of Python trickery combines the search algorithm and the heuristic
-            self.searchFunction = lambda x: func(x, heuristic=heur)
+            if trials is None or 'trials' not in func.__code__.co_varnames:
+                print('[SearchAgent] using function %s and heuristic %s' % (fn, heuristic))
+                # Note: this bit of Python trickery combines the search algorithm and the heuristic
+                self.searchFunction = lambda x: func(x, heuristic=heur)
+            else:
+                tr = int(trials)
+                if not tr:
+                    raise AttributeError(trials + ' should be a number.')
+                print('[SearchAgent] using function %s and heuristic %s with %s trial(s)' % (fn, heuristic, tr))
+                self.searchFunction = lambda x: func(x, heuristic=heur, trials=tr)
 
         # Get the search problem type from the name
         if prob not in globals().keys() or not prob.endswith('Problem'):
@@ -398,6 +406,7 @@ class CornersProblem(search.SearchProblem):
                     heuristica_inicial[((i, j), combinacao)] = heuristica(((i,j), combinacao), self)
         return heuristica_inicial
 
+
 def cornersHeuristic(state: Any, problem: CornersProblem):
     """
     A heuristic for the CornersProblem that you defined.
@@ -432,8 +441,8 @@ class AStarCornersAgent(SearchAgent):
 
 class LRTAStarCornersAgent(SearchAgent):
     "A SearchAgent for CornersProblem using LRTA* and your cornersHeuristic"
-    def __init__(self):
-        self.searchFunction = lambda prob: search.lrtaStarSearch(prob, cornersHeuristic)
+    def __init__(self, trials="5"):
+        self.searchFunction = lambda prob: search.lrtaStarSearch(prob, cornersHeuristic, int(trials))
         self.searchType = CornersProblem
 
 class FoodSearchProblem:
