@@ -296,15 +296,13 @@ def dlsSearch(problem: SearchProblem, limite: int):
             raise ValueError("Nenhuma solução encontrada!")
         #nó ← REMOVE(borda)
         no, solucao, profundidade = borda.pop()
-        #se profundidade > limite então devolve falha
+        #se profundidade > limite então ignora solução
         if profundidade > limite:
-            raise ValueError(f"Limite de profundidade atingido: {limite}")
-        #se problema.TESTE-META(filho.ESTADO) então devolve solução(filho)
+            continue
+        #se problema.TESTE-META(nó) então devolve solução (nó)
+        if problem.isGoalState(no):
+            return solucao
         filhos = problem.getSuccessors(no)
-        for filho in filhos:
-            filho_no, filho_acao, filho_custo = filho
-            if problem.isGoalState(filho_no):
-                return solucao + [filho_acao]
         #explorado ← INSIRA(nó.ESTADO, explorado)
         explorado.add(no)
         #para cada ação em problema.AÇÕES(nó.ESTADO) faça
