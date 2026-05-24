@@ -11,6 +11,15 @@
 # Student side autograding was added by Brad Miller, Nick Hay, and
 # Pieter Abbeel (pabbeel@cs.berkeley.edu).
 
+"""
+===============================================================
+====================== IMPLEMENTAÇÃO EP2 ======================
+===============================================================
+=============== Miguel Sarraf Ferreira Santucci ===============
+======================== NUSP 10336827 ========================
+===============================================================
+"""
+
 
 from util import manhattanDistance
 from game import Directions
