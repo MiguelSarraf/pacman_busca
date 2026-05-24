@@ -87,8 +87,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
     """
     Your minimax agent (question 1)
 
-    Implementado baseado no slide 54 da aula 10 e realizados ajustes finos na lógica
-    para comportar multiagentes.
+    Implementado baseado no slide 54 da aula 10 e realizados ajustes finos na lógica para comportar multiagentes.
     http://edisciplinas.usp.br/pluginfile.php/9530457/mod_resource/content/1/Aula10-JogoAdversarial-I-2026.pdf
     """
     def gera_lista_de_fantasminhas(self, estado):
@@ -185,8 +184,7 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
     """
     Your minimax agent with alpha-beta pruning (question 2)
 
-    Implementado baseado nos slides 99 e 100 da aula 10 e realizados ajustes finos na lógica
-    para comportar multiagentes.
+    Implementado baseado nos slides 99 e 100 da aula 10 e realizados ajustes finos na lógica para comportar multiagentes.
     http://edisciplinas.usp.br/pluginfile.php/9530457/mod_resource/content/1/Aula10-JogoAdversarial-I-2026.pdf
     """
     def gera_lista_de_fantasminhas(self, estado):
@@ -271,7 +269,63 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
 class ExpectimaxAgent(MultiAgentSearchAgent):
     """
       Your expectimax agent (question 3)
+
+    Implementado baseado na implementação do minimax e no slide 6 da aula 11 e realizados ajustes finos na lógica para comportar multiagentes.
+    https://edisciplinas.usp.br/pluginfile.php/9530833/mod_resource/content/3/Aula11-JogoAdversarial-II-2026.pdf
     """
+    def gera_lista_de_fantasminhas(self, estado):
+        lista_de_fantasminhas = [i for i in range(1, estado.getNumAgents())]
+        return lista_de_fantasminhas
+
+    def teste_termino(self, estado, profundidade):
+        if profundidade>self.depth: return True
+        if estado.isWin(): return True
+        if estado.isLose(): return True
+        return False
+
+    def valor_max(self, estado, profundidade=1):
+        #se TESTE DE TÉRMINO(estado) então devolver UTILIDADE(estado)
+        if self.teste_termino(estado, profundidade):
+            return self.evaluationFunction(estado)
+        #v ← -∞
+        v = -infinito
+        #Para cada a em AÇÕES(estado) faça
+        pacman_indice = 0
+        acoes_possiveis = estado.getLegalActions(pacman_indice)
+        for acao in acoes_possiveis:
+            #RESULTADO(s,a)
+            proximo_estado = estado.generateSuccessor(pacman_indice, acao)
+            #v ← MAX(v,VALOR-MIN(RESULTADO(s,a)))
+            lista_de_fantasminhas = self.gera_lista_de_fantasminhas(estado)
+            avaliacao = self.valor_min(proximo_estado, lista_de_fantasminhas, profundidade)
+            v = max(v, avaliacao)
+        return v
+
+    def valor_min(self, estado, lista_de_fantasminhas, profundidade=1):
+        #se TESTE DE TÉRMINO(estado) então devolver UTILIDADE(estado)
+        if self.teste_termino(estado, profundidade):
+            return self.evaluationFunction(estado)
+        fantasminha = lista_de_fantasminhas[0]
+        outros_fantasminhas = lista_de_fantasminhas[1:]
+        #initialize v = 0
+        v = 0
+        #for each successor of state:
+        acoes_possiveis = estado.getLegalActions(fantasminha)
+        num_acoes = len(acoes_possiveis)
+        for acao in acoes_possiveis:
+            #RESULTADO(s,a)
+            proximo_estado = estado.generateSuccessor(fantasminha, acao)
+            if outros_fantasminhas:
+                #Se ainda houverem fantasminhas, faz outro valor minimo, antes do pacman jogar de novo
+                avaliacao = self.valor_min(proximo_estado, outros_fantasminhas, profundidade)
+            else:
+                #Profundidade só aumenta se for uma jogada do Pacman (essa foi difícil de decifrar)
+                avaliacao = self.valor_max(proximo_estado, profundidade+1)
+            #v += p * value(successor)
+            #Como p=1/(possibilidades de ação), a divisão foi passada para o final do processamento
+            v += avaliacao
+        v /= num_acoes
+        return v
 
     def getAction(self, gameState: GameState):
         """
@@ -279,9 +333,22 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
 
         All ghosts should be modeled as choosing uniformly at random from their
         legal moves.
+
+        Essa função é semelhante à DECISÃO-MINIMAX do slide
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        # A ação buscada é sempre a do pacman
+        pacman_indice = 0
+        #a ∊ ações(s)
+        acoes_possiveis = gameState.getLegalActions(pacman_indice)
+        valores = []
+        for acao in acoes_possiveis:
+            #RESULTADO(estado,a)
+            proximo_estado = gameState.generateSuccessor(pacman_indice, acao)
+            #VALOR-MIN(RESULTADO(estado,a))
+            lista_de_fantasminhas = self.gera_lista_de_fantasminhas(gameState)
+            valores.append(self.valor_min(proximo_estado, lista_de_fantasminhas))
+        #argmax_{a ∊ ações(s)} VALOR-MIN(RESULTADO(estado,a))
+        return acoes_possiveis[valores.index(max(valores))]
 
 def betterEvaluationFunction(currentGameState: GameState):
     pos = currentGameState.getPacmanPosition()
