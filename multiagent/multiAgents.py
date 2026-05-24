@@ -184,14 +184,89 @@ class MinimaxAgent(MultiAgentSearchAgent):
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
     Your minimax agent with alpha-beta pruning (question 2)
+
+    Implementado baseado nos slides 99 e 100 da aula 10 e realizados ajustes finos na lógica
+    para comportar multiagentes.
+    http://edisciplinas.usp.br/pluginfile.php/9530457/mod_resource/content/1/Aula10-JogoAdversarial-I-2026.pdf
     """
+    def gera_lista_de_fantasminhas(self, estado):
+        lista_de_fantasminhas = [i for i in range(1, estado.getNumAgents())]
+        return lista_de_fantasminhas
+
+    def teste_termino(self, estado, profundidade):
+        if profundidade>self.depth: return True
+        if estado.isWin(): return True
+        if estado.isLose(): return True
+        return False
+
+    def valor_max(self, estado, alfa, beta, profundidade=1, volta_acao=False):
+        #se TESTE DE TÉRMINO(estado) então devolver UTILIDADE(estado)
+        if self.teste_termino(estado, profundidade):
+            return self.evaluationFunction(estado)
+        #v ← -∞
+        v = -infinito
+        #Para cada a em AÇÕES(estado) faça
+        pacman_indice = 0
+        acoes_possiveis = estado.getLegalActions(pacman_indice)
+        acao_escolhida = None
+        for acao in acoes_possiveis:
+            #RESULTADO(s,a)
+            proximo_estado = estado.generateSuccessor(pacman_indice, acao)
+            #v ← MAX(v,VALOR-MIN(RESULTADO(s,a)))
+            lista_de_fantasminhas = self.gera_lista_de_fantasminhas(estado)
+            avaliacao = self.valor_min(proximo_estado, lista_de_fantasminhas, alfa, beta, profundidade)
+            v = max(v, avaliacao)
+            if v == avaliacao:
+                acao_escolhida = acao
+            #se v>=β então devolve v
+            #Conforme instruído no enunciado, não deve ser feito teste de igualdade
+            if v > beta:
+                break
+            #α ← MAX(α,v)
+            alfa = max(alfa, v)
+        if volta_acao:
+            return v, acao_escolhida
+        return v
+
+    def valor_min(self, estado, lista_de_fantasminhas, alfa, beta, profundidade=1):
+        #se TESTE DE TÉRMINO(estado) então devolver UTILIDADE(estado)
+        if self.teste_termino(estado, profundidade):
+            return self.evaluationFunction(estado)
+        fantasminha = lista_de_fantasminhas[0]
+        outros_fantasminhas = lista_de_fantasminhas[1:]
+        #v ← ∞
+        v = infinito
+        #Para cada a em AÇÕES(estado) faça
+        acoes_possiveis = estado.getLegalActions(fantasminha)
+        for acao in acoes_possiveis:
+            #RESULTADO(s,a)
+            proximo_estado = estado.generateSuccessor(fantasminha, acao)
+            if outros_fantasminhas:
+                #Se ainda houverem fantasminhas, faz outro valor minimo, antes do pacman jogar de novo
+                avaliacao = self.valor_min(proximo_estado, outros_fantasminhas, alfa, beta, profundidade)
+            else:
+                #v ← MIN(v,VALOR-MAX(RESULTADO(s,a)))
+                #Profundidade só aumenta se for uma jogada do Pacman (essa foi difícil de decifrar)
+                avaliacao = self.valor_max(proximo_estado, alfa, beta, profundidade+1)
+            v = min(v, avaliacao)
+            #se v<=α então devolve v
+            #Conforme instruído no enunciado, não deve ser feito teste de igualdade
+            if v < alfa:
+                break
+            #β ← MIN(β, v)
+            beta = min(beta, v)
+        return v
 
     def getAction(self, gameState: GameState):
         """
         Returns the minimax action using self.depth and self.evaluationFunction
+
+        Essa função é semelhante à  BUSCA-ALFA-BETA do slide
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        #v ← VALOR-MAX(estado, -∞, + ∞)
+        v, a = self.valor_max(gameState, -infinito, infinito, volta_acao=True)
+        #devolver a ação em AÇÕES(estado) com valor v
+        return a
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
     """
