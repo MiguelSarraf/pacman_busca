@@ -61,8 +61,45 @@ class ValueIterationAgent(ValueEstimationAgent):
 
     def runValueIteration(self):
         # Write value iteration code here
-        "*** YOUR CODE HERE ***"
+        """
+        Baseado nos slides de aula
+        https://edisciplinas.usp.br/pluginfile.php/9583073/mod_resource/content/1/Aula18-PlanejmentoProbabilistico-Parte2_2026.pdf
+        slide 21
+        """
 
+        # \forall s in S faça
+        #    v0(s)<-r(s)
+        # v0 começa inicializado com 0
+
+        # n<-0
+        n = 0
+
+        # repita
+        while True:
+            #n<-n+1
+            n += 1
+
+            valores_novos = self.values.copy()
+            # \forall s in S faça
+            for estado in self.mdp.getStates():
+                if self.mdp.isTerminal(estado):
+                    valores_novos[estado] = self.mdp.getReward(estado, None, estado)
+                    continue
+                # \forall a in A faça
+                novo_Q = None
+                for acao in self.mdp.getPossibleActions(estado):
+                    # qn(s, a)<-...
+                    valor = self.computeQValueFromValues(estado, acao)
+                    novo_Q = valor if novo_Q is None else max(novo_Q, valor)
+                # vn(s)<-max_{a in A} qn(s, a)
+                valores_novos[estado] = novo_Q
+                # pin(s)<-argmax_{a in A} qn(s, a)
+                # politica não precisa ser atualizada
+
+            # até maximo de iterações
+            if n > self.iterations:
+                break
+            self.values = valores_novos.copy()
 
     def getValue(self, state):
         """
@@ -76,8 +113,14 @@ class ValueIterationAgent(ValueEstimationAgent):
           Compute the Q-value of action in state from the
           value function stored in self.values.
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        valor_Q = None
+        # \forall s in S
+        for proximo_estado, probabilidade in self.mdp.getTransitionStatesAndProbs(state, action):
+            # T (s, a, s′) ∗ (r(s, a, s′) + γ ∗ V (s′))
+            recompensa = self.mdp.getReward(state, action, proximo_estado)
+            valor = probabilidade * (recompensa + self.discount * self.getValue(proximo_estado))
+            valor_Q = valor if valor_Q is None else valor_Q + valor
+        return valor_Q
 
     def computeActionFromValues(self, state):
         """
@@ -88,8 +131,17 @@ class ValueIterationAgent(ValueEstimationAgent):
           there are no legal actions, which is the case at the
           terminal state, you should return None.
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        max_Q = None
+        acao_escolhida = None
+
+        # \forall a in A
+        for acao in self.mdp.getPossibleActions(state):
+            valor_Q = self.computeQValueFromValues(state, acao)
+            if max_Q is None or valor_Q > max_Q:
+                max_Q = valor_Q
+                acao_escolhida = acao
+
+        return acao_escolhida
 
     def getPolicy(self, state):
         return self.computeActionFromValues(state)
