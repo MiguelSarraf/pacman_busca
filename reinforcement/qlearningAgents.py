@@ -38,11 +38,16 @@ class QLearningAgent(ReinforcementAgent):
         - self.getLegalActions(state)
           which returns legal actions for a state
     """
+
+    """
+    Baseado nos slides da aula 20 e comentários direcionadores
+    https://edisciplinas.usp.br/pluginfile.php/9598670/mod_resource/content/2/Aula20-Aprendizado%20por%20Reforc%CC%A7o%20%28Controle%29-2026.pdf
+    """
     def __init__(self, **args):
         "You can initialize Q-values here..."
         ReinforcementAgent.__init__(self, **args)
 
-        "*** YOUR CODE HERE ***"
+        self.valores_Q = util.Counter()
 
     def getQValue(self, state, action):
         """
@@ -50,8 +55,7 @@ class QLearningAgent(ReinforcementAgent):
           Should return 0.0 if we have never seen a state
           or the Q node value otherwise
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        return self.valores_Q[(state, action)]
 
 
     def computeValueFromQValues(self, state):
@@ -61,8 +65,12 @@ class QLearningAgent(ReinforcementAgent):
           there are no legal actions, which is the case at the
           terminal state, you should return a value of 0.0.
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        valor_max = None
+        for acao in self.getLegalActions(state):
+            valor = self.getQValue(state, acao)
+            valor_max = valor if valor_max is None else max(valor_max, valor)
+
+        return 0 if valor_max is None else valor_max
 
     def computeActionFromQValues(self, state):
         """
@@ -70,8 +78,14 @@ class QLearningAgent(ReinforcementAgent):
           are no legal actions, which is the case at the terminal state,
           you should return None.
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        melhor_acao = None
+        valor_melhor_acao = None
+        for acao in self.getLegalActions(state):
+            valor = self.getQValue(state, acao)
+            melhor_acao = acao if valor_melhor_acao is None or valor > valor_melhor_acao else melhor_acao
+            valor_melhor_acao = valor if valor_melhor_acao is None else max(valor_melhor_acao, valor)
+
+        return melhor_acao
 
     def getAction(self, state):
         """
@@ -87,8 +101,13 @@ class QLearningAgent(ReinforcementAgent):
         # Pick Action
         legalActions = self.getLegalActions(state)
         action = None
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        
+        melhor_acao = self.computeActionFromQValues(state)
+        eh_aleatorio = util.flipCoin(self.epsilon)
+        if eh_aleatorio:
+            action = random.choice(legalActions)
+        else:
+            action = melhor_acao
 
         return action
 
@@ -101,8 +120,9 @@ class QLearningAgent(ReinforcementAgent):
           NOTE: You should never call this function,
           it will be called on your behalf
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        valor_antigo = self.getQValue(state, action)
+        proximo_Q = self.computeValueFromQValues(nextState)
+        self.valores_Q[(state, action)] += self.alpha * (reward + self.discount * proximo_Q - valor_antigo)
 
     def getPolicy(self, state):
         return self.computeActionFromQValues(state)
